@@ -15,9 +15,10 @@ pub fn handle_add_bookmark(
     let bookmark: BookmarkChangeset = serde_urlencoded::from_bytes(req.body().as_ref())?;
 
     println!("Bookmark: {:?}", bookmark);
-
+    println!("SQL: '{}'", INSERT_BOOKMARK);
+    println!("SQL length: {}", INSERT_BOOKMARK.len());
     let connection = Connection::open_default()?;
-    let values = [Value::Text(  bookmark.url.clone()), Value::Text( bookmark.title.clone())];
+    let values = [Value::Text(  "hello".to_string()), Value::Text( bookmark.title.clone())];
     
     connection.execute(INSERT_BOOKMARK, &values)?;
     // Here you would typically save the bookmark to a database
