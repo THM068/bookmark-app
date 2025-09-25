@@ -39,7 +39,6 @@ pub fn handle_get_all_bookmarks(req: Request, params: Params) -> anyhow::Result<
             title: row.get:: < & str>("title").unwrap_or_default().to_string(),
         })
         .collect();
-    
     let template = BookMarksTemplate { bookmarks: bookmarks };
 
     Ok(render_as_html(&template.render()?))

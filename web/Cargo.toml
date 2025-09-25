@@ -2,7 +2,7 @@
 name = "web"
 authors = ["admin <thando.mafela@gmail.com>"]
 description = "Website to add bookmark links"
-version = "0.1.0"
+version = "0.2.0"
 rust-version = "1.78"
 edition = "2021"
 

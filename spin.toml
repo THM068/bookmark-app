@@ -2,7 +2,7 @@ spin_manifest_version = 2
 
 [application]
 name = "bookmark-ai-links"
-version = "0.1.0"
+version = "0.2.0"
 authors = ["admin <thando.mafela@gmail.com>"]
 description = "Application to book mark my ai queries"
 
