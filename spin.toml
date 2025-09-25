@@ -13,6 +13,7 @@ component = "web"
 [component.web]
 source = "web/target/wasm32-wasip1/release/web.wasm"
 allowed_outbound_hosts = []
+sqlite_databases = ["default"]
 [component.web.build]
 command = "cargo build --target wasm32-wasip1 --release"
 workdir = "web"
