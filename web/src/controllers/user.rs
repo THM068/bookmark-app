@@ -1,8 +1,12 @@
+use jwt_simple::claims::JWTClaims;
 use serde::{Deserialize, Serialize};
-use spin_sdk::http::{IntoResponse, Json, Params, Request};
+use spin_sdk::http::{IntoResponse, Json, Params, Request, Response};
 use validator::Validate;
-use crate::controllers::{render_as_json, BAD_REQUEST_STATUS, render_as_json_error, OK_STATUS};
+use crate::controllers::{render_as_json, BAD_REQUEST_STATUS, render_as_json_error, OK_STATUS, UNAUTHORIZED_STATUS, CREATED_STATUS};
+use crate::controllers::auth::{Auth, UserClaims};
+
 use crate::models::users::{get_user_by_username, insert_user};
+use crate::protected_route;
 
 #[derive(Debug, Serialize, Deserialize, Validate)]
 pub struct UserChangeset {
@@ -10,6 +14,19 @@ pub struct UserChangeset {
     pub username: String,
     #[validate(length(min = 1, message = "password cannot be empty"))]
     pub password: String,
+}
+pub async fn handle_get_user_by_id(req: Request, _params: Params) -> anyhow::Result<impl IntoResponse, anyhow::Error> {
+    let claims = match Auth::verify(&req) {
+        Ok(claims) => claims,
+        Err(e) => return Ok(render_as_json("Unauthorized", UNAUTHORIZED_STATUS)),
+    };
+            
+    Ok(render_as_json("Not implemented", OK_STATUS))
+    
+}
+
+pub async fn handle_get_user_idd(req: Request, _params: Params, claims: JWTClaims<UserClaims>) -> anyhow::Result<impl IntoResponse, anyhow::Error> {
+    Ok(render_as_json("Not implemented", OK_STATUS))
 }
 
 pub async fn handle_add_user(req: Request, _params: Params) -> anyhow::Result<impl IntoResponse, anyhow::Error> {
@@ -53,6 +70,6 @@ pub async fn handle_add_user(req: Request, _params: Params) -> anyhow::Result<im
     insert_user(&changeset)?;
     let json = serde_json::to_string(&changeset)?;
 
-    Ok(render_as_json(json.as_str(), OK_STATUS))
+    Ok(render_as_json(json.as_str(), CREATED_STATUS))
 }
 

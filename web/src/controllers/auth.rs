@@ -1,4 +1,5 @@
-use anyhow::anyhow;
+use std::future::Future;
+use anyhow::{anyhow, Error};
 use bcrypt::verify;
 use jwt_simple::algorithms::{HS256Key, MACLike};
 use jwt_simple::claims::{Claims, JWTClaims};
@@ -59,23 +60,7 @@ pub fn verify_password(password: &str, hash: &str) -> bool {
     verify(password, hash).unwrap()
 }
 
-fn require_auth<F>(
-    handler: F,
-) -> impl Fn(Request, Params) -> Result<dyn IntoResponse, anyhow::Error>
-where
-    F: Fn(Request, Params, JWTClaims<UserClaims>) -> Result<dyn IntoResponse, anyhow::Error>
-{
-    move |req: Request, params: Params| {
-        // Verify JWT
-        let claims = match verify_jwt(&req) {
-            Ok(claims) => claims,
-            Err(e) => return Ok(unauthorized_response(&e.to_string())),
-        };
 
-        // Call the actual handler with claims
-        handler(req, params, claims)
-    }
-}
 
 #[derive(Serialize, Deserialize)]
 pub struct UserClaims {
@@ -108,5 +93,41 @@ fn unauthorized_response(message: &str) -> impl IntoResponse {
         .header("content-type", "application/json")
         .body(format!(r#"{{"error": "{}"}}"#, message))
         .build()
+}
+
+#[macro_export] macro_rules!  protected_route {
+    ($req:expr, $handler:expr) => {{
+        match verify_jwt(&$req) {
+            Ok(claims) => $handler(claims),
+            Err(e) => Ok(
+                spin_sdk::http::Response::builder()
+                    .status(401)
+                    .header("content-type", "application/json")
+                    .body(format!(r#"{{"error": "Unauthorized: {}"}}"#, e))
+                    .build()
+            ),
+        }
+    }};
+}
+
+pub struct Auth;
+
+impl Auth {
+    const SECRET_KEY: &'static [u8] = b"your-256-bit-secret";
+
+    pub fn verify(req: &Request) -> Result<JWTClaims<UserClaims>, anyhow::Error> {
+        let auth_header = req
+            .header("authorization")
+            .and_then(|h| h.as_str())
+            .ok_or_else(|| anyhow::anyhow!("Missing Authorization header"))?;
+
+        let token = auth_header
+            .strip_prefix("Bearer ")
+            .ok_or_else(|| anyhow::anyhow!("Invalid Authorization format"))?;
+
+        let key = HS256Key::from_bytes(Self::SECRET_KEY);
+        key.verify_token::<UserClaims>(token, None)
+            .map_err(|e| anyhow::anyhow!("Invalid token: {}", e))
+    }
 }
 

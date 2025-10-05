@@ -1,6 +1,8 @@
 pub mod home;
 pub mod bookmarks;
+#[macro_use]
 pub mod user;
+#[macro_use]
 pub mod auth;
 
 pub fn redirect_to(url: &str) -> impl spin_sdk::http::IntoResponse {
@@ -18,7 +20,8 @@ pub fn render_as_html(html: &str) -> impl spin_sdk::http::IntoResponse {
         .build()
 }
 
-pub fn render_as_json(content: &str, status: u16) -> impl spin_sdk::http::IntoResponse {
+pub fn 
+render_as_json(content: &str, status: u16) -> impl spin_sdk::http::IntoResponse {
     spin_sdk::http::Response::builder()
         .status(status)
         .header("content-type", "application/json")

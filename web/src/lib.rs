@@ -1,4 +1,4 @@
-use spin_sdk::http::{IntoResponse, Request, Response, Router};
+use spin_sdk::http::{IntoResponse, Request, Router};
 use spin_sdk::http_component;
 use askama::Template;
 use controllers::user;
@@ -19,7 +19,8 @@ fn handle_ai_bookmark_app(req: Request) -> anyhow::Result<impl IntoResponse, any
     
     //user routes
     router.post_async("/user", user::handle_add_user);
-    
+    router.get_async("/user/:id", user::handle_get_user_by_id);
+
     //authentication routes
     router.post_async("/login", controllers::auth::handle_login);
     
